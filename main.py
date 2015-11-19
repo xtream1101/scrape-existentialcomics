@@ -144,7 +144,6 @@ class ExistentialComics(CustomUtils):
                                              prop['id'][-1],
                                              file_name + file_ext
                                              )
-            print(prop['save_path'])
 
             self.download(img, prop['save_path'], self._url_header)
 
