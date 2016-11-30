@@ -55,7 +55,6 @@ class Worker:
         # Parse the items here and return the content to be added to the db
         logger.info("Getting comic {comic_id}".format(comic_id=self.comic_id))
 
-
         rdata['title'] = soup.find('h3').text
 
         # Some comics consist of a few images
@@ -82,7 +81,6 @@ class Worker:
         rdata['philosophers'] = []
         if philosophers:
             for philosopher in philosophers.find_all('a'):
-                philosopher_id = philosopher['href'].split('/')[-1]
                 philosopher_name = philosopher.text.strip()
                 rdata['philosophers'].append(philosopher_name)
 
@@ -103,7 +101,7 @@ class Worker:
 class ExistentialcomicsComics(Scraper):
 
     def __init__(self, config_file=None):
-        super().__init__('xkcd')
+        super().__init__('existentialcomics')
 
         self.max_id = self.get_latest()
         self.last_id_scraped = self.get_last_scraped()
