@@ -2,31 +2,21 @@
 
 Developed using Python 3.4
 
-Scrape the site `existentialcomics.com/` and save all the items and pick up where it left off last run.
+Must pass in a config file like so: `python3 existentialcomics-comics.py -c ~/scrapers.conf`
 
-## Dependencies
-- [BeautifulSoup4](https://pypi.python.org/pypi/beautifulsoup4)
-- [SQLAlchemy](https://pypi.python.org/pypi/SQLAlchemy)
-- [custom_utils](https://github.com/xtream1101/custom-utils)
+See what the conf file need to be here: https://github.com/xtream1101/scraper-lib
 
-## Usage
-- Any args passed in via the command line will override values in the config file if one is passed in
-- You must pass a config file with `save_dir` set or `-d` 
+## Setup
 
-`$ python3 main.py -c <config_file> -d </dir/to/download/dir>`  
-Set this to run as a cron to keep up to date with the content
+Run `pip3 install -r requirements.txt`
 
 
-## Config file
-All values in the config file are optional  
-If you do not have `save_dir` set here, you must pass in the dir using `-d`  
+Scrape the site http://existentialcomics.com/ and save all the comics on the site and get new ones on each run.
+
+This scraper also requires the section in the config:
 ```
-save_dir: ./test
-restart: false
-
-proxies: 
-    - http://xx.xx.xx.xx:xx
-    - http://xx.xx.xx.xx:xx
-    - http://xx.xx.xx.xx:xx
+[existentialcomics-comics]
+# `scraper_key` is only needed if `scraper-monitor` is enabled
+scraper_key =
 ```
 
