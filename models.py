@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date, Text
 from sqlalchemy.schema import CreateSchema
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import ProgrammingError, IntegrityError
@@ -13,8 +13,8 @@ SCHEMA = 'existentialcomics'
 table_prefix = ''
 
 if not raw_config.get('database', 'uri').startswith('postgres'):
-    SCHEMA = None
     table_prefix = SCHEMA + '_'
+    SCHEMA = None
 
 
 class Comic(Base):
@@ -27,6 +27,7 @@ class Comic(Base):
     philosophers = Column(String(2048))  # Will be delimited by `,`
     num_philosophers = Column(Integer)
     alt = Column(Text)
+    ocr = Column(Text)
     explanation = Column(Text)  # Will be delimited by `|`
     file_paths = Column(Text)
     num_panels = Column(Integer)  # Number of images that are in `file_paths`
@@ -54,7 +55,7 @@ Base.metadata.create_all(engine)
 
 Base.metadata.bind = engine
 
-DBSession = sessionmaker(bind=engine)
+DBSession = scoped_session(sessionmaker(bind=engine))
 
 db_session = DBSession()
 

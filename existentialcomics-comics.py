@@ -5,7 +5,7 @@ import cutil
 import signal
 import logging
 from scraper_monitor import scraper_monitor
-from models import db_session, Setting, Comic, NoResultFound
+from models import db_session, Setting, Comic, NoResultFound, DBSession
 from scraper_lib import Scraper, Web
 
 # Create logger for this script
@@ -178,6 +178,7 @@ class ExistentialcomicsComics(Scraper):
         Will handle inserting data into the database
         """
         try:
+            db_session = DBSession()
             # Check if comic is in database, if so update else create
             try:
                 comic = db_session.query(Comic).filter(Comic.comic_id == data.get('comic_id')).one()
