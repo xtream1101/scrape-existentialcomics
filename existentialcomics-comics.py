@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import json
@@ -6,7 +7,8 @@ import signal
 import logging
 from scraper_monitor import scraper_monitor
 from models import db_session, Setting, Comic, NoResultFound, DBSession
-from scraper_lib import Scraper, Web
+from scraper_lib import Scraper
+from web_wrapper import DriverRequests
 
 # Create logger for this script
 logger = logging.getLogger(__name__)
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Worker:
 
-    def __init__(self, web, comic_id):
+    def __init__(self, scraper, web, comic_id):
         """
         Worker Profile
 
@@ -24,6 +26,7 @@ class Worker:
         # `web` is what utilizes the profiles and proxying
         self.web = web
         self.comic_id = comic_id
+        self.scraper = scraper
 
         # Get the sites content as a beautifulsoup object
         url = 'http://existentialcomics.com/comic/{comic_id}'.format(comic_id=self.comic_id)
@@ -34,13 +37,13 @@ class Worker:
             parsed_data = self.parse(response)
             if len(parsed_data) > 0:
                 # Add raw data to db
-                self.web.scraper.insert_data(parsed_data)
+                self.scraper.insert_data(parsed_data)
 
                 # Remove id from list of comics to get
-                self.web.scraper.comic_ids.remove(self.comic_id)
+                self.scraper.comic_ids.remove(self.comic_id)
 
                 # Add success count to stats. Keeps track of how much ref data has been parsed
-                self.web.scraper.track_stat('ref_data_success_count', 1)
+                self.scraper.track_stat('ref_data_success_count', 1)
 
         # Take it easy on the site
         time.sleep(1)
@@ -86,14 +89,16 @@ class Worker:
 
         rdata['file_paths'] = []
         for idx, img in enumerate(rdata['raw_img_list']):
-            filename = '{last_num}/{comic_id}_{idx}{file_ext}'\
-                       .format(last_num=str(self.comic_id)[-1],
+            filename = '{base}/{last_num}/{comic_id}_{idx}{file_ext}'\
+                       .format(base=self.scraper.BASE_SAVE_DIR,
+                               last_num=str(self.comic_id)[-1],
                                comic_id=self.comic_id,
                                idx=idx,
                                file_ext=cutil.get_file_ext(img),
                                )
 
-            rdata['file_paths'].append(self.web.download(img, filename))
+            rdata['file_paths'].append(self.web.download(img, filename)
+                                               .replace(self.scraper.BASE_DATA_DIR + os.path.sep, ''))
 
         return rdata
 
@@ -122,13 +127,13 @@ class ExistentialcomicsComics(Scraper):
         scraper.stats['ref_data_count'] = len(self.comic_ids)
 
         # Only ever use 1 thread here
-        self.thread_profile(1, 'requests', self.comic_ids, Worker)
+        self.thread_profile(1, DriverRequests, self.comic_ids, Worker)
 
     def get_latest(self):
         """
         Get the latest comic id posted
         """
-        tmp_web = Web(self, 'requests')
+        tmp_web = DriverRequests()
 
         url = "http://existentialcomics.com/"
         # Get the json data
